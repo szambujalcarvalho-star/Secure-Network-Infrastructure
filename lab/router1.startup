@@ -1,0 +1,11 @@
+ifconfig eth0 17.2.2.1/24 up
+ifconfig eth1 6.6.6.1/24 up
+ip route add 17.2.0.0/20 via 17.2.2.2
+ip route add 0.0.0.0/0 via 6.6.6.2
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+mkdir -p /dev/net
+mknod /dev/net/tun c 10 200
+chmod 600 /dev/net/tun
+openvpn --config /etc/openvpn/server.conf --daemon
+

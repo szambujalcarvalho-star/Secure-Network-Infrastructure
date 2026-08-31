@@ -1,0 +1,21 @@
+ifconfig eth0 21.4.3.2/24 up
+route add default gw 21.4.3.254
+
+# Instalar
+apt-get update
+apt-get install -y apache2
+
+#HTML
+cat <<EOF > /var/www/html/index.html
+<html>
+  <body>
+    <h1>RedVector</h1>
+    <p>Bem-vindo ao site da RedVector.</p>
+    <p>Grupo 16</p>
+  </body>
+</html>
+EOF
+
+#arrancar apache
+service apache2 start
+

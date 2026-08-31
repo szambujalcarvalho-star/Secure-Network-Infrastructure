@@ -1,0 +1,41 @@
+# Imagem Kathara com o software 'snort' instalado.
+# Base: a mesma imagem usada nas restantes VMs do projeto (xtrm0/quagga).
+# xtrm0/quagga e' baseada em Debian Buster (EOL) -> apt aponta para archive.debian.org
+#
+# Build:
+#   docker build -f docker/Dockerfile.snort -t redvector/snort docker/
+#
+# Depois, no lab.conf, a VM 'ids' usa: ids[image]="redvector/snort"
+
+FROM xtrm0/quagga
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Debian Buster e' EOL -> redirigir apt para o archive
+RUN printf '%s\n' \
+    'deb http://archive.debian.org/debian buster main contrib non-free' \
+    'deb http://archive.debian.org/debian buster-updates main contrib non-free' \
+    'deb http://archive.debian.org/debian-security buster/updates main contrib non-free' \
+    > /etc/apt/sources.list && \
+    printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99no-check-valid-until
+
+# Preseed das respostas do snort para o apt-get nao bloquear a pedir input
+RUN echo "snort snort/address_range string 17.2.4.0/24" | debconf-set-selections && \
+    echo "snort snort/interface string eth0"             | debconf-set-selections && \
+    echo "snort snort/start_method string boot"          | debconf-set-selections
+
+# Instalar snort
+RUN apt-get update -o Acquire::Check-Valid-Until=false && \
+    apt-get install -y --no-install-recommends snort && \
+    rm -rf /var/lib/apt/lists/*
+
+# Garantir que existe a directoria dos logs
+RUN mkdir -p /var/log/snort && chown snort:snort /var/log/snort 2>/dev/null || true
+
+# Alteracoes obrigatorias ao /etc/snort/snort.conf:
+#   1. config checksum_mode: none  (exigido pelo enunciado, ponto 29)
+#   2. HOME_NET = 17.2.4.0/24      (rede corporate vigiada)
+#   3. EXTERNAL_NET = any          (qualquer origem)
+RUN sed -i 's|^ipvar HOME_NET .*|ipvar HOME_NET 17.2.4.0/24|'      /etc/snort/snort.conf && \
+    sed -i 's|^ipvar EXTERNAL_NET .*|ipvar EXTERNAL_NET any|'      /etc/snort/snort.conf && \
+    sed -i '1i config checksum_mode: none'                          /etc/snort/snort.conf

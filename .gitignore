@@ -1,0 +1,18 @@
+# Operating-system metadata
+.DS_Store
+._*
+*:Zone.Identifier
+
+# Private/generated cryptographic material
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+known_hosts
+authorized_keys
+
+# Generated logs / temporary files
+*.log
+*.tmp

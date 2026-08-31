@@ -1,0 +1,6 @@
+ifconfig eth0 17.2.4.55/24 up
+route add default gw 17.2.4.254
+
+# nc à escuta na porta 35016 (35000 + 16)
+nc -l -p 35016 &
+

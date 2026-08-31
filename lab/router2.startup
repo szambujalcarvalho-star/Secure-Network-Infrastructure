@@ -1,0 +1,51 @@
+ifconfig eth0 17.2.2.2/24 up
+ifconfig eth1 17.2.3.254/24 up
+ifconfig eth2 17.2.4.254/24 up
+ifconfig eth3 17.2.5.254/24 up
+ifconfig eth4 17.2.6.254/24 up
+ip route add 0.0.0.0/0 via 17.2.2.1
+
+# Firewall - Ponto 1: Default DROP
+iptables -P FORWARD DROP
+
+# Firewall - Ponto 2: Ping e traceroute
+iptables -A FORWARD -p icmp -j ACCEPT
+iptables -A FORWARD -p udp --dport 33434:33534 -j ACCEPT
+
+# Firewall - Ponto 4: Redes isoladas so SSH com corporate
+iptables -A FORWARD -p tcp -s 17.2.3.0/24 -d 17.2.4.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.5.0/24 -d 17.2.4.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.6.0/24 -d 17.2.4.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.4.0/24 -d 17.2.3.0/24 --sport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.4.0/24 -d 17.2.5.0/24 --sport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.4.0/24 -d 17.2.6.0/24 --sport 22 -j ACCEPT
+iptables -A FORWARD -s 17.2.3.0/24 -d 17.2.5.0/24 -j DROP
+iptables -A FORWARD -s 17.2.3.0/24 -d 17.2.6.0/24 -j DROP
+iptables -A FORWARD -s 17.2.5.0/24 -d 17.2.3.0/24 -j DROP
+iptables -A FORWARD -s 17.2.5.0/24 -d 17.2.6.0/24 -j DROP
+iptables -A FORWARD -s 17.2.6.0/24 -d 17.2.3.0/24 -j DROP
+iptables -A FORWARD -s 17.2.6.0/24 -d 17.2.5.0/24 -j DROP
+
+# Firewall - Ponto 5: Corporate acede a cloud e redes isoladas por SSH e HTTP
+iptables -A FORWARD -p tcp -s 17.2.4.0/24 -d 17.2.3.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.4.0/24 -d 17.2.5.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.4.0/24 -d 17.2.6.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.3.0/24 -d 17.2.4.0/24 --sport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.5.0/24 -d 17.2.4.0/24 --sport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.6.0/24 -d 17.2.4.0/24 --sport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.4.0/24 -d 21.4.3.0/24 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 21.4.3.0/24 -d 17.2.4.0/24 --sport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 17.2.4.0/24 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -d 17.2.4.0/24 --sport 80 -j ACCEPT
+
+# Firewall - Ponto 6: Comunicacao livre dentro de cada LAN
+iptables -A FORWARD -s 17.2.3.0/24 -d 17.2.3.0/24 -j ACCEPT
+iptables -A FORWARD -s 17.2.4.0/24 -d 17.2.4.0/24 -j ACCEPT
+iptables -A FORWARD -s 17.2.5.0/24 -d 17.2.5.0/24 -j ACCEPT
+iptables -A FORWARD -s 17.2.6.0/24 -d 17.2.6.0/24 -j ACCEPT
+
+# Firewall - Ponto 9: Bloquear .255
+iptables -A FORWARD -d 17.2.3.255 -j DROP
+iptables -A FORWARD -d 17.2.4.255 -j DROP
+iptables -A FORWARD -d 17.2.5.255 -j DROP
+iptables -A FORWARD -d 17.2.6.255 -j DROP

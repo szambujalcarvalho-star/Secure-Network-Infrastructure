@@ -1,0 +1,8 @@
+ifconfig eth0 17.2.4.1/24 up
+route add default gw 17.2.4.254
+# Portfolio copy: create the 'admin' user locally and set a password interactively.
+
+# SSH
+/etc/init.d/ssh start
+chmod 700 /root/.ssh
+chmod 600 /root/.ssh/id_rsa

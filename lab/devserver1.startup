@@ -1,0 +1,10 @@
+ifconfig eth0 17.2.3.2/24 up
+route add default gw 17.2.3.254
+
+# nc à escuta na porta 30016 (30000 + 16)
+nc -l -p 30016 &
+
+# SSH
+/etc/init.d/ssh start
+chmod 700 /root/.ssh
+chmod 600 /root/.ssh/authorized_keys

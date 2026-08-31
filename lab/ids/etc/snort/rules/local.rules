@@ -1,0 +1,31 @@
+# ===========================================================================
+# Regras locais do snort - Grupo 16 (par) -> regras 3, 4 e 5 do enunciado
+# Rede vigiada: HOME_NET = 17.2.4.0/24 (rede corporate)
+# Definido em /etc/snort/snort.conf
+# ===========================================================================
+
+# Regra 3 - Tentativa de acesso a TCP/445 (SMB) numa maquina da rede corporate.
+# Frequentemente associado a movimentos laterais e propagacao de malware.
+alert tcp any any -> $HOME_NET 445 ( \
+    msg:"[Regra 3] Tentativa de acesso SMB (TCP/445) na rede corporate - possivel movimento lateral"; \
+    flags:S; \
+    classtype:attempted-recon; \
+    sid:1000003; rev:1;)
+
+# Regra 4 - Tentativa de acesso a TCP/20 (FTP-data) numa maquina da rede corporate.
+# Frequentemente associado a movimentos laterais e propagacao de malware.
+alert tcp any any -> $HOME_NET 20 ( \
+    msg:"[Regra 4] Tentativa de acesso FTP (TCP/20) na rede corporate - possivel movimento lateral"; \
+    flags:S; \
+    classtype:attempted-recon; \
+    sid:1000004; rev:1;)
+
+# Regra 5 - Deteccao de possivel port scan TCP a maquina da rede corporate.
+# Dispara quando uma mesma origem envia 15+ pacotes TCP SYN para a rede
+# corporate num intervalo de 5 segundos (comportamento tipico de nmap/scan).
+alert tcp any any -> $HOME_NET any ( \
+    msg:"[Regra 5] Possivel TCP port scan a maquina da rede corporate"; \
+    flags:S; \
+    detection_filter:track by_src, count 15, seconds 5; \
+    classtype:attempted-recon; \
+    sid:1000005; rev:1;)

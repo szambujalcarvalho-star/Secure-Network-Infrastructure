@@ -1,0 +1,34 @@
+ifconfig eth0 up
+ifconfig eth1 up
+ifconfig eth0 hw ether 04:00:00:00:01:00
+ifconfig eth1 hw ether 04:00:00:00:01:01
+brctl addbr br0
+brctl addif br0 eth0
+brctl addif br0 eth1
+ifconfig br0 up
+
+# Firewall - Ponto 1: Default DROP
+iptables -P FORWARD DROP
+
+# Firewall - Ponto 2: Ping e traceroute
+iptables -A FORWARD -p icmp -j ACCEPT
+iptables -A FORWARD -p udp --dport 33434:33534 -j ACCEPT
+
+# Firewall - Ponto 3: HTTP ao webserver
+iptables -A FORWARD -p tcp -d 21.4.3.2 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -s 21.4.3.2 --sport 80 -j ACCEPT
+
+# Firewall - Ponto 7: Anti-spoofing saida
+iptables -A FORWARD -o eth0 ! -s 17.2.0.0/20 -j DROP
+
+# Firewall - Ponto 8: Anti-spoofing entrada
+iptables -A FORWARD -i eth0 -s 17.2.0.0/20 -j DROP
+
+# Firewall - Ponto 9: Bloquear .255
+iptables -A FORWARD -d 17.2.0.255 -j DROP
+iptables -A FORWARD -d 17.2.1.255 -j DROP
+iptables -A FORWARD -d 17.2.2.255 -j DROP
+iptables -A FORWARD -d 17.2.3.255 -j DROP
+iptables -A FORWARD -d 17.2.4.255 -j DROP
+iptables -A FORWARD -d 17.2.5.255 -j DROP
+iptables -A FORWARD -d 17.2.6.255 -j DROP

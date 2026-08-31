@@ -1,0 +1,15 @@
+ifconfig eth0 17.2.4.2/24 up
+route add default gw 17.2.4.254
+
+# Garantir que existe a directoria dos logs
+mkdir -p /var/log/snort
+
+# Arrancar o snort em modo NIDS em background (-D = daemon).
+#   -q  : quiet (nao imprime banner)
+#   -d  : analisar payload (deep packet inspection)
+#   -i eth0 : interface de captura (switch2 esta em modo hub)
+#   -c /etc/snort/snort.conf : configuracao (checksum_mode:none, HOME_NET=17.2.4.0/24)
+#   -l /var/log/snort : directoria dos logs
+#   -A fast : alertas em formato fast (timestamp + msg + IPs/portos)
+# Os alertas ficam em /var/log/snort/alert.
+snort -D -q -d -i eth0 -c /etc/snort/snort.conf -l /var/log/snort -A fast
